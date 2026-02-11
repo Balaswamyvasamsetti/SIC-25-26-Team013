@@ -234,7 +234,7 @@ const ResumeAnalyzer = () => {
               </Card>
             ) : (
               <Card sx={{ height: '100%' }}>
-                <CardContent sx={{ textAlign: 'center', py: 6, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <CardContent sx={{ textAlign: 'center', py: 6, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                   <Psychology sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
                   <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                     Ready to Analyze

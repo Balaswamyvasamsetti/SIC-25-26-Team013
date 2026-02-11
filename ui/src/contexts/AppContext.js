@@ -50,6 +50,20 @@ export const AppProvider = ({ children }) => {
     })
   );
 
+  // New Features State
+  const [collections, setCollections] = useState(() =>
+    loadFromStorage('collections', [])
+  );
+  const [searchFilters, setSearchFilters] = useState(() =>
+    loadFromStorage('searchFilters', {
+      dateRange: 'all',
+      fileType: 'all',
+      confidenceMin: 0,
+      sortBy: 'relevance',
+    })
+  );
+  const [smartSuggestions, setSmartSuggestions] = useState([]);
+
   useEffect(() => {
     saveToStorage('conversations', conversations);
   }, [conversations]);
@@ -66,6 +80,14 @@ export const AppProvider = ({ children }) => {
     saveToStorage('resumeData', resumeData);
   }, [resumeData]);
 
+  useEffect(() => {
+    saveToStorage('collections', collections);
+  }, [collections]);
+
+  useEffect(() => {
+    saveToStorage('searchFilters', searchFilters);
+  }, [searchFilters]);
+
   const value = {
     conversations,
     setConversations,
@@ -79,6 +101,12 @@ export const AppProvider = ({ children }) => {
     setDocumentsLoaded,
     resumeData,
     setResumeData,
+    collections,
+    setCollections,
+    searchFilters,
+    setSearchFilters,
+    smartSuggestions,
+    setSmartSuggestions,
   };
 
   return (

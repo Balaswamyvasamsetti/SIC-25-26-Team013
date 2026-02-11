@@ -5,14 +5,18 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, useMediaQuery } from '@mui/material';
 import { ThemeModeProvider, useThemeMode } from './contexts/ThemeContext';
-import { AppProvider } from './contexts/AppContext';
+import { AppProvider, useAppContext } from './contexts/AppContext';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
+import Dashboard from './pages/Dashboard';
 import QueryInterface from './pages/QueryInterface';
 import SystemMetrics from './pages/SystemMetrics';
 import DocumentUpload from './pages/DocumentUpload';
 import ResumeAnalyzer from './pages/ResumeAnalyzer';
 import LoadingScreen from './components/LoadingScreen';
+import KeyboardShortcuts from './components/KeyboardShortcuts';
+import CommandPalette from './components/CommandPalette';
+import ExportDialog from './components/ExportDialog';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -28,14 +32,18 @@ const queryClient = new QueryClient({
 function AppContent() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { theme } = useThemeMode();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const { theme, toggleMode } = useThemeMode();
+  const { conversations, setConversations, resumeData } = useAppContext();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
       document.body.classList.add('app-loaded');
-    }, 1200);
+    }, 2000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -44,6 +52,40 @@ function AppContent() {
       setSidebarOpen(false);
     }
   }, [isMobile]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+K or Cmd+K - Command palette
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+      // Ctrl+/ or Cmd+/ - Show shortcuts
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        setShortcutsOpen(true);
+      }
+      // Ctrl+D or Cmd+D - Toggle dark mode
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        toggleMode();
+      }
+      // Ctrl+B or Cmd+B - Toggle sidebar
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        setSidebarOpen(prev => !prev);
+      }
+      // Ctrl+E or Cmd+E - Export
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault();
+        setExportOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleMode]);
 
   if (loading) {
     return <LoadingScreen />;
@@ -66,20 +108,48 @@ function AppContent() {
               flexGrow: 1,
               minHeight: '100vh',
               backgroundColor: 'background.default',
-              ml: 0,
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
             <TopBar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
             
-            <Box sx={{ p: { xs: 2, sm: 3 } }}>
+            <Box sx={{ p: { xs: 2, sm: 3 }, flex: 1 }}>
               <Routes>
-                <Route path="/" element={<Navigate to="/query" replace />} />
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/query" element={<QueryInterface />} />
                 <Route path="/resume" element={<ResumeAnalyzer />} />
                 <Route path="/metrics" element={<SystemMetrics />} />
                 <Route path="/upload" element={<DocumentUpload />} />
               </Routes>
             </Box>
+            
+            <KeyboardShortcuts 
+              open={shortcutsOpen} 
+              onClose={() => setShortcutsOpen(false)} 
+            />
+            
+            <CommandPalette
+              open={commandPaletteOpen}
+              onClose={() => setCommandPaletteOpen(false)}
+              onToggleTheme={toggleMode}
+              onExport={() => {
+                setCommandPaletteOpen(false);
+                setExportOpen(true);
+              }}
+              onClearChat={() => {
+                setConversations([]);
+                setCommandPaletteOpen(false);
+              }}
+            />
+            
+            <ExportDialog
+              open={exportOpen}
+              onClose={() => setExportOpen(false)}
+              conversations={conversations}
+              resumeAnalysis={resumeData?.analysis}
+            />
           </Box>
         </Box>
       </Router>

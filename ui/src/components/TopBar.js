@@ -24,6 +24,7 @@ import {
   Switch,
   FormControlLabel,
   Divider,
+  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -38,16 +39,23 @@ import {
   CheckCircle,
   Speed,
   VolumeUp,
+  FileDownload,
+  Keyboard,
 } from '@mui/icons-material';
 import { useThemeMode } from '../contexts/ThemeContext';
+import { useAppContext } from '../contexts/AppContext';
+import ExportDialog from './ExportDialog';
 
 const TopBar = ({ onMenuClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode, toggleMode } = useThemeMode();
+  const { conversations, resumeData } = useAppContext();
   
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [settings, setSettings] = useState({
     notifications: true,
@@ -104,14 +112,13 @@ const TopBar = ({ onMenuClick }) => {
 
   return (
     <AppBar
-      position="fixed"
+      position="static"
       elevation={0}
       sx={{
         backgroundColor: 'background.paper',
         borderBottom: '1px solid',
         borderColor: 'divider',
         color: 'text.primary',
-        zIndex: theme.zIndex.drawer + 1,
       }}
     >
       <Toolbar sx={{ minHeight: '64px !important', px: { xs: 2, sm: 3 } }}>
@@ -133,14 +140,35 @@ const TopBar = ({ onMenuClick }) => {
 
         {/* Right side actions */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton 
-            color="inherit" 
-            size="small"
-            onClick={toggleMode}
-            title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
-          >
-            {mode === 'dark' ? <LightMode /> : <DarkMode />}
-          </IconButton>
+          <Tooltip title="Export data">
+            <IconButton 
+              color="inherit" 
+              size="small"
+              onClick={() => setExportOpen(true)}
+            >
+              <FileDownload />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Keyboard shortcuts">
+            <IconButton 
+              color="inherit" 
+              size="small"
+              onClick={() => setShortcutsOpen(true)}
+            >
+              <Keyboard />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}>
+            <IconButton 
+              color="inherit" 
+              size="small"
+              onClick={toggleMode}
+            >
+              {mode === 'dark' ? <LightMode /> : <DarkMode />}
+            </IconButton>
+          </Tooltip>
 
           <Badge badgeContent={notifications.length} color="primary">
             <IconButton 
@@ -287,6 +315,49 @@ const TopBar = ({ onMenuClick }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSettingsOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Export Dialog */}
+      <ExportDialog
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        conversations={conversations}
+        resumeAnalysis={resumeData?.analysis}
+      />
+
+      {/* Keyboard Shortcuts Dialog */}
+      <Dialog
+        open={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Keyboard Shortcuts</DialogTitle>
+        <DialogContent>
+          <List dense>
+            <ListItem>
+              <ListItemText
+                primary="Ctrl + D"
+                secondary="Toggle dark mode"
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Ctrl + B"
+                secondary="Toggle sidebar"
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Ctrl + Enter"
+                secondary="Send query (in chat)"
+              />
+            </ListItem>
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShortcutsOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </AppBar>

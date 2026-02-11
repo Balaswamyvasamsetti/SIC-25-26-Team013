@@ -22,6 +22,7 @@ import {
   Checkbox,
   Avatar,
   InputAdornment,
+  Tooltip,
 } from '@mui/material';
 import {
   Send,
@@ -40,11 +41,20 @@ import {
   ThumbDown,
   AccessTime,
   Feedback,
+  FilterList,
+  History,
+  Summarize,
+  FolderOpen,
 } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import { queryAPI } from '../services/api';
 import { useAppContext } from '../contexts/AppContext';
 import Footer from '../components/Footer';
+import AdvancedSearchFilters from '../components/AdvancedSearchFilters';
+import ConversationHistorySearch from '../components/ConversationHistorySearch';
+import SmartSuggestions from '../components/SmartSuggestions';
+import DocumentSummarization from '../components/DocumentSummarization';
+import CollectionsManager from '../components/CollectionsManager';
 
 const QueryInterface = () => {
   const {
@@ -58,6 +68,10 @@ const QueryInterface = () => {
     setSelectedDocuments,
     documentsLoaded,
     setDocumentsLoaded,
+    searchFilters,
+    setSearchFilters,
+    smartSuggestions,
+    setSmartSuggestions,
   } = useAppContext();
   
   const [query, setQuery] = useState('');
@@ -85,6 +99,10 @@ const QueryInterface = () => {
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadDialog, setUploadDialog] = useState({ open: false, files: [], results: [] });
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [historySearchOpen, setHistorySearchOpen] = useState(false);
+  const [summarizeDialog, setSummarizeDialog] = useState({ open: false, document: null });
+  const [collectionsOpen, setCollectionsOpen] = useState(false);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const conversationEndRef = useRef(null);
@@ -101,6 +119,24 @@ const QueryInterface = () => {
 
   useEffect(() => {
     conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [conversations, loading]);
+
+  // Generate smart suggestions based on context
+  useEffect(() => {
+    if (conversations.length > 0 && !loading) {
+      const lastMessage = conversations[conversations.length - 1];
+      if (lastMessage.type === 'ai' && lastMessage.sources && lastMessage.sources.length > 0) {
+        // Generate document-based suggestions
+        const suggestions = [
+          'What are the main findings in these documents?',
+          'Can you summarize the key points from the sources?',
+          'What methodology was used in these documents?',
+          'Are there any limitations mentioned in the sources?',
+          'What conclusions are drawn in these documents?',
+        ];
+        setSmartSuggestions(suggestions);
+      }
+    }
   }, [conversations, loading]);
 
   const fetchDocuments = async () => {
@@ -395,12 +431,13 @@ const QueryInterface = () => {
                   {message.responseTime && (
                     <Chip
                       icon={<AccessTime />}
-                      label={`${(message.responseTime / 1000).toFixed(1)}s`}
+                      label={`${(message.responseTime / 1000).toFixed(2)}s`}
                       size="small"
                       variant="outlined"
                       color="info"
                     />
                   )}
+                  <Box sx={{ flexGrow: 1 }} />
                   <IconButton
                     size="small"
                     onClick={() => handleCopyResponse(message.content)}
@@ -415,11 +452,6 @@ const QueryInterface = () => {
                     title="Good response"
                     sx={{ 
                       color: message.feedback?.type === 'positive' ? 'success.main' : 'text.secondary',
-                      backgroundColor: 'transparent',
-                      '&:hover': { 
-                        color: 'success.main',
-                        backgroundColor: 'transparent'
-                      }
                     }}
                   >
                     <ThumbUp fontSize="small" />
@@ -430,11 +462,6 @@ const QueryInterface = () => {
                     title="Poor response"
                     sx={{ 
                       color: message.feedback?.type === 'negative' ? 'error.main' : 'text.secondary',
-                      backgroundColor: 'transparent',
-                      '&:hover': { 
-                        color: 'error.main',
-                        backgroundColor: 'transparent'
-                      }
                     }}
                   >
                     <ThumbDown fontSize="small" />
@@ -506,23 +533,26 @@ const QueryInterface = () => {
 
   return (
     <>
-      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', pt: 8 }}>
+      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
         {/* Main Content Area */}
-        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', flexDirection: { xs: 'column', md: 'row' } }}>
         {/* Sources Sidebar */}
         <Box
           sx={{
-            width: 350,
-            borderRight: '1px solid',
+            width: { xs: '100%', md: 320 },
+            maxHeight: { xs: '40vh', md: '100%' },
+            borderRight: { md: '1px solid' },
+            borderBottom: { xs: '1px solid', md: 'none' },
             borderColor: 'divider',
             display: 'flex',
             flexDirection: 'column',
             backgroundColor: 'background.paper',
+            overflow: 'auto',
           }}
         >
-          <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Sources
+          <Box sx={{ p: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: '1.1rem' }}>
+              Document Sources
             </Typography>
             
             <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
@@ -542,11 +572,18 @@ const QueryInterface = () => {
                 disabled={uploading}
                 fullWidth
               >
-                Upload Documents
+                Upload
               </Button>
-              <IconButton size="small" onClick={fetchDocuments}>
-                <Refresh fontSize="small" />
-              </IconButton>
+              <Tooltip title="Manage collections">
+                <IconButton size="small" onClick={() => setCollectionsOpen(true)}>
+                  <FolderOpen fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Refresh">
+                <IconButton size="small" onClick={fetchDocuments}>
+                  <Refresh fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
             
             {documents.length > 0 && (
@@ -651,7 +688,7 @@ const QueryInterface = () => {
           {/* Chat Header */}
           <Box
             sx={{
-              p: 3,
+              p: 2.5,
               borderBottom: '1px solid',
               borderColor: 'divider',
               backgroundColor: 'background.paper',
@@ -661,25 +698,37 @@ const QueryInterface = () => {
             }}
           >
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Chat
+              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                AI Research Assistant
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
                 Ask questions about your uploaded documents
               </Typography>
             </Box>
             
             {conversations.length > 0 && (
-              <Button
-                variant="outlined"
-                onClick={handleClear}
-                disabled={loading}
-                size="small"
-                startIcon={<Clear />}
-                color="error"
-              >
-                Clear Chat
-              </Button>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Tooltip title="Search history">
+                  <IconButton size="small" onClick={() => setHistorySearchOpen(true)}>
+                    <History fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Advanced filters">
+                  <IconButton size="small" onClick={() => setFiltersOpen(true)}>
+                    <FilterList fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Button
+                  variant="outlined"
+                  onClick={handleClear}
+                  disabled={loading}
+                  size="small"
+                  startIcon={<Clear />}
+                  color="error"
+                >
+                  Clear
+                </Button>
+              </Box>
             )}
           </Box>
 
@@ -717,6 +766,18 @@ const QueryInterface = () => {
                 {conversations.map((message) => (
                   <MessageBubble key={message.id} message={message} />
                 ))}
+                
+                {/* Smart Suggestions */}
+                {smartSuggestions.length > 0 && !loading && (
+                  <SmartSuggestions
+                    suggestions={smartSuggestions}
+                    onSelectSuggestion={(suggestion) => {
+                      setQuery(suggestion);
+                      setSmartSuggestions([]);
+                    }}
+                    onDismiss={() => setSmartSuggestions([])}
+                  />
+                )}
                 
                 {loading && (
                   <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3 }}>
@@ -766,14 +827,14 @@ const QueryInterface = () => {
           {/* Input Area */}
           <Box
             sx={{
-              p: 3,
+              p: 2.5,
               borderTop: '1px solid',
               borderColor: 'divider',
               backgroundColor: 'background.paper',
             }}
           >
             <form onSubmit={handleSubmit}>
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+              <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-end' }}>
                 <TextField
                   ref={textareaRef}
                   fullWidth
@@ -800,15 +861,17 @@ const QueryInterface = () => {
                   type="submit"
                   variant="contained"
                   disabled={loading || !query.trim()}
-                  startIcon={loading ? null : <Send />}
+                  endIcon={loading ? null : <Send />}
                   sx={{
-                    minWidth: 120,
+                    minWidth: 110,
                     height: 56,
                     fontSize: '0.875rem',
+                    fontWeight: 600,
                     whiteSpace: 'nowrap',
+                    px: 3,
                   }}
                 >
-                  {loading ? 'Processing...' : 'Send Query'}
+                  {loading ? 'Sending...' : 'Send'}
                 </Button>
               </Box>
             </form>
@@ -930,6 +993,37 @@ const QueryInterface = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* New Feature Dialogs */}
+      <AdvancedSearchFilters
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        onApplyFilters={(filters) => setSearchFilters(filters)}
+      />
+
+      <ConversationHistorySearch
+        open={historySearchOpen}
+        onClose={() => setHistorySearchOpen(false)}
+        conversations={conversations}
+        onSelectConversation={(conv) => {
+          conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
+
+      <DocumentSummarization
+        open={summarizeDialog.open}
+        onClose={() => setSummarizeDialog({ open: false, document: null })}
+        document={summarizeDialog.document}
+      />
+
+      <CollectionsManager
+        open={collectionsOpen}
+        onClose={() => setCollectionsOpen(false)}
+        documents={documents}
+        onUpdateDocument={(docId, updates) => {
+          setDocuments(docs => docs.map(d => d.id === docId ? { ...d, ...updates } : d));
+        }}
+      />
     </>
   );
 };

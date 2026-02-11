@@ -35,6 +35,13 @@ const Sidebar = ({ open, onToggle, isMobile }) => {
 
   const navigationItems = [
     {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: <Hub />,
+      path: '/dashboard',
+      description: 'Overview & quick actions',
+    },
+    {
       id: 'query',
       label: 'Query Documents',
       icon: <Search />,
