@@ -1,3 +1,12 @@
+---
+title: AI Research Agent
+emoji: rocket
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+---
+
 # AI Research Agent (RAG)
 
 ## Revolutionary Tool for Querying Private Document PDF Sets
@@ -62,6 +71,27 @@ npm start
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8080
 - API Docs: http://localhost:8080/docs
+
+## Hugging Face Space (Extra Deployment)
+
+This project now supports a separate Hugging Face Space deployment without changing your current local setup.
+
+### One-Time Setup
+
+1. Create a new Space with `Docker` SDK.
+2. In the Space repository, use this project's code.
+3. Set Space `Dockerfile path` to `Dockerfile.space`.
+4. Add required secrets/variables:
+   - `DATABASE_URL`
+   - `GEMINI_API_KEY`
+   - `NEO4J_URL`, `NEO4J_USER`, `NEO4J_PASSWORD` (if needed)
+
+### Runtime Selection
+
+- Local/default run stays unchanged (`runtime_mode=local`, port `3001` backend default).
+- Hugging Face Space run is auto-selected by:
+  - `RUNTIME_MODE=space` or
+  - Hugging Face environment variables (`SPACE_ID`/`HF_SPACE_ID`).
 
 ## Core Features
 
