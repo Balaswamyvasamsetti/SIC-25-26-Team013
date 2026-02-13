@@ -63,9 +63,12 @@ log/
 
 # Data files
 /backend/data/
-/data/
 uploads/
 temp/
+
+# Allow Data folder with research PDFs
+!/Data/
+!/Data/*.pdf
 
 # IDE
 .vscode/
