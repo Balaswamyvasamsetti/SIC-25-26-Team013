@@ -420,68 +420,47 @@ const QueryInterface = () => {
                 {message.content}
               </ReactMarkdown>
               
-              {message.confidence && (
-                <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                  <Chip
-                    label={`${Math.round(message.confidence * 100)}% confidence`}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                  />
-                  {message.responseTime && (
-                    <Chip
-                      icon={<AccessTime />}
-                      label={`${(message.responseTime / 1000).toFixed(2)}s`}
-                      size="small"
-                      variant="outlined"
-                      color="info"
-                    />
-                  )}
-                  <Box sx={{ flexGrow: 1 }} />
-                  <IconButton
-                    size="small"
-                    onClick={() => handleCopyResponse(message.content)}
-                    title="Copy response"
-                    sx={{ color: 'text.secondary' }}
-                  >
-                    <ContentCopy fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleFeedback(message.id, 'positive')}
-                    title="Good response"
-                    sx={{ 
-                      color: message.feedback?.type === 'positive' ? 'success.main' : 'text.secondary',
-                    }}
-                  >
-                    <ThumbUp fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleFeedback(message.id, 'negative')}
-                    title="Poor response"
-                    sx={{ 
-                      color: message.feedback?.type === 'negative' ? 'error.main' : 'text.secondary',
-                    }}
-                  >
-                    <ThumbDown fontSize="small" />
-                  </IconButton>
-                </Box>
-              )}
-              
-              {/* Timestamp at bottom */}
-              <Typography 
-                variant="caption" 
-                color={isUser ? 'primary.contrastText' : 'text.secondary'}
-                sx={{ 
-                  fontSize: '0.65rem',
-                  opacity: 0.7,
-                  mt: 1,
-                  display: 'block'
-                }}
-              >
-                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </Typography>
+              <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary"
+                  sx={{ 
+                    fontSize: '0.65rem',
+                    opacity: 0.7
+                  }}
+                >
+                  {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Typography>
+                <Box sx={{ flexGrow: 1 }} />
+                <IconButton
+                  size="small"
+                  onClick={() => handleCopyResponse(message.content)}
+                  title="Copy response"
+                  sx={{ color: 'text.secondary' }}
+                >
+                  <ContentCopy fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => handleFeedback(message.id, 'positive')}
+                  title="Good response"
+                  sx={{ 
+                    color: message.feedback?.type === 'positive' ? 'success.main' : 'text.secondary',
+                  }}
+                >
+                  <ThumbUp fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => handleFeedback(message.id, 'negative')}
+                  title="Poor response"
+                  sx={{ 
+                    color: message.feedback?.type === 'negative' ? 'error.main' : 'text.secondary',
+                  }}
+                >
+                  <ThumbDown fontSize="small" />
+                </IconButton>
+              </Box>
               
               {message.sources && message.sources.length > 0 && (
                 <Box sx={{ mt: 2 }}>
