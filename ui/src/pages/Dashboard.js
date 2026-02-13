@@ -25,6 +25,12 @@ import {
   CloudUpload,
   Search,
   Analytics,
+  Science,
+  Memory,
+  BlurOn,
+  Groups,
+  AccessTime,
+  Bolt,
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { queryAPI } from '../services/api';
@@ -78,12 +84,12 @@ const Dashboard = () => {
   ];
 
   const technologies = [
-    { name: 'Quantum Retrieval', efficiency: 85, icon: '⚛️' },
-    { name: 'Neural Memory', efficiency: 78, icon: '🧠' },
-    { name: 'Holographic Storage', efficiency: 73, icon: '🌈' },
-    { name: 'Swarm Intelligence', efficiency: 92, icon: '🐝' },
-    { name: 'Temporal Analysis', efficiency: 67, icon: '⏰' },
-    { name: 'Speculative RAG', efficiency: 88, icon: '⚡' },
+    { name: 'Quantum Retrieval', efficiency: 85, icon: <Science fontSize="small" /> },
+    { name: 'Neural Memory', efficiency: 78, icon: <Memory fontSize="small" /> },
+    { name: 'Holographic Storage', efficiency: 73, icon: <BlurOn fontSize="small" /> },
+    { name: 'Swarm Intelligence', efficiency: 92, icon: <Groups fontSize="small" /> },
+    { name: 'Temporal Analysis', efficiency: 67, icon: <AccessTime fontSize="small" /> },
+    { name: 'Speculative RAG', efficiency: 88, icon: <Bolt fontSize="small" /> },
   ];
 
   return (
@@ -279,9 +285,16 @@ const Dashboard = () => {
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Typography sx={{ fontSize: '1.5rem', mr: 1 }}>
+                    <Avatar
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        mr: 1,
+                        bgcolor: 'primary.main',
+                      }}
+                    >
                       {tech.icon}
-                    </Typography>
+                    </Avatar>
                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                       {tech.name}
                     </Typography>
@@ -328,3 +341,5 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+

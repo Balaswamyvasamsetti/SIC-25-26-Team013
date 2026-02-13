@@ -15,19 +15,19 @@ class FallbackGenerator:
         api_key = os.getenv("GEMINI_API_KEY")
         self.gemini_available = False
         
-        if api_key and api_key != "your_gemini_api_key_here":
+        if api_key and api_key != "AIzaSyCW84yszWoUttl9xP4mB1nTITdidxN6lHc":
             try:
                 genai.configure(api_key=api_key)
                 # Test API
                 test_model = genai.GenerativeModel(settings.fallback_model)
                 test_model.generate_content("test")
                 self.gemini_available = True
-                print(f"✓ Fallback Gemini API ready with {settings.fallback_model}")
+                print(f"Fallback Gemini API ready with {settings.fallback_model}")
             except Exception as e:
-                print(f"✗ Fallback Gemini API failed: {e}")
+                print(f"Fallback Gemini API failed: {e}")
                 self.gemini_available = False
         else:
-            print("✗ No Gemini API key for fallback")
+            print("No Gemini API key for fallback")
             self.gemini_available = False
     
     async def generate_answer(self, query: str, chunks: List[Chunk]) -> Dict[str, Any]:
