@@ -83,16 +83,16 @@ const QueryInterface = () => {
   );
 
   const loadingMessages = [
-    '🔬 Activating quantum retrieval systems...',
-    '🧠 Engaging neuromorphic memory networks...',
-    '🌈 Scanning holographic information patterns...',
-    '🐝 Deploying swarm intelligence agents...',
-    '⏰ Analyzing temporal causality chains...',
-    '⚡ Running speculative RAG processes...',
-    '🎯 Optimizing adaptive generation models...',
-    '🔍 Retrieving relevant document fragments...',
-    '💫 Processing quantum interference patterns...',
-    '🧬 Strengthening synaptic connections...',
+    'Activating quantum retrieval systems...',
+    'Engaging neuromorphic memory networks...',
+    'Scanning holographic information patterns...',
+    'Deploying swarm intelligence agents...',
+    'Analyzing temporal causality chains...',
+    'Running speculative RAG processes...',
+    'Optimizing adaptive generation models...',
+    'Retrieving relevant document fragments...',
+    'Processing quantum interference patterns...',
+    'Strengthening synaptic connections...',
   ];
   const [deleteDialog, setDeleteDialog] = useState({ open: false, document: null });
   const [clearDialog, setClearDialog] = useState(false);
@@ -103,6 +103,7 @@ const QueryInterface = () => {
   const [historySearchOpen, setHistorySearchOpen] = useState(false);
   const [summarizeDialog, setSummarizeDialog] = useState({ open: false, document: null });
   const [collectionsOpen, setCollectionsOpen] = useState(false);
+  const [noSourcesDialog, setNoSourcesDialog] = useState(false);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const conversationEndRef = useRef(null);
@@ -199,11 +200,23 @@ const QueryInterface = () => {
     e.preventDefault();
     if (!query.trim() || loading) return;
 
+    // Warn if no documents selected
+    if (selectedDocuments.length === 0) {
+      setNoSourcesDialog(true);
+      return;
+    }
+
+    executeQuery();
+  };
+
+  const executeQuery = async () => {
+
     const userMessage = {
       id: Date.now(),
       type: 'user',
       content: query,
       timestamp: new Date(),
+      selectedDocCount: selectedDocuments.length,
     };
 
     setConversations(prev => [...prev, userMessage]);
@@ -220,7 +233,12 @@ const QueryInterface = () => {
     }, 2000);
 
     try {
-      const result = await queryAPI.query(query, 'balanced', selectedDocuments);
+      // Pass selected document IDs or empty array (backend will use all docs if empty)
+      const result = await queryAPI.query(
+        query, 
+        'balanced', 
+        selectedDocuments.length > 0 ? selectedDocuments : null
+      );
       const responseTimeMs = Date.now() - startTime;
       setResponseTime(responseTimeMs);
       
@@ -233,6 +251,7 @@ const QueryInterface = () => {
         timestamp: new Date(),
         responseTime: responseTimeMs,
         feedback: null,
+        queriedDocCount: selectedDocuments.length,
       };
       setConversations(prev => [...prev, aiMessage]);
     } catch (error) {
@@ -254,6 +273,15 @@ const QueryInterface = () => {
       setLoadingMessage('');
       setStartTime(null);
     }
+  };
+
+  const handleNoSourcesContinue = () => {
+    setNoSourcesDialog(false);
+    executeQuery();
+  };
+
+  const handleNoSourcesCancel = () => {
+    setNoSourcesDialog(false);
   };
 
   const handleClear = () => {
@@ -371,6 +399,20 @@ const QueryInterface = () => {
               <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
                 {message.content}
               </Typography>
+              
+              {/* Show selected document count */}
+              {message.selectedDocCount !== undefined && (
+                <Chip
+                  size="small"
+                  label={message.selectedDocCount === 0 ? 'All sources' : `${message.selectedDocCount} source${message.selectedDocCount !== 1 ? 's' : ''}`}
+                  sx={{ 
+                    mt: 1, 
+                    height: 20, 
+                    fontSize: '0.7rem',
+                    backgroundColor: message.selectedDocCount === 0 ? 'warning.light' : 'primary.light',
+                  }}
+                />
+              )}
               
               {/* Timestamp at bottom for user messages */}
               <Typography 
@@ -512,57 +554,53 @@ const QueryInterface = () => {
 
   return (
     <>
-      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Main Content Area */}
-        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', flexDirection: { xs: 'column', md: 'row' } }}>
+        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
         {/* Sources Sidebar */}
         <Box
           sx={{
-            width: { xs: '100%', md: 320 },
-            maxHeight: { xs: '40vh', md: '100%' },
-            borderRight: { md: '1px solid' },
-            borderBottom: { xs: '1px solid', md: 'none' },
+            width: 280,
+            borderRight: '1px solid',
             borderColor: 'divider',
-            display: 'flex',
+            display: { xs: 'none', md: 'flex' },
             flexDirection: 'column',
             backgroundColor: 'background.paper',
-            overflow: 'auto',
+            flexShrink: 0,
+            overflow: 'hidden',
           }}
         >
-          <Box sx={{ p: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: '1.1rem' }}>
-              Document Sources
-            </Typography>
-            
-            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                multiple
-                accept=".pdf,.docx,.txt"
-                style={{ display: 'none' }}
-              />
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<CloudUpload />}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                fullWidth
-              >
-                Upload
-              </Button>
-              <Tooltip title="Manage collections">
-                <IconButton size="small" onClick={() => setCollectionsOpen(true)}>
-                  <FolderOpen fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Refresh">
-                <IconButton size="small" onClick={fetchDocuments}>
-                  <Refresh fontSize="small" />
-                </IconButton>
-              </Tooltip>
+          {/* Fixed Header */}
+          <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
+                Sources
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  multiple
+                  accept=".pdf,.docx,.txt"
+                  style={{ display: 'none' }}
+                />
+                <Tooltip title="Upload files">
+                  <IconButton size="small" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                    <CloudUpload fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Collections">
+                  <IconButton size="small" onClick={() => setCollectionsOpen(true)}>
+                    <FolderOpen fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Refresh">
+                  <IconButton size="small" onClick={fetchDocuments}>
+                    <Refresh fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
             
             {documents.length > 0 && (
@@ -571,91 +609,112 @@ const QueryInterface = () => {
                 onClick={handleSelectAll}
                 variant="text"
                 fullWidth
-                sx={{ mb: 2 }}
+                sx={{ mb: 1, fontSize: '0.8rem', textTransform: 'none' }}
               >
                 {selectedDocuments.length === documents.length ? 'Deselect All' : 'Select All'}
               </Button>
             )}
-            
-            {selectedDocuments.length > 0 && (
-              <Alert severity="info" sx={{ fontSize: '0.75rem' }}>
-                {selectedDocuments.length} source(s) selected
-              </Alert>
-            )}
           </Box>
           
-          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+          {/* Scrollable Documents List */}
+          <Box 
+            sx={{ 
+              flex: 1, 
+              overflow: 'auto', 
+              p: 1.5, 
+              minHeight: 0,
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: 'transparent',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+                borderRadius: '4px',
+                '&:hover': {
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+                },
+              },
+            }}
+          >
             {loadingDocs ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <LinearProgress sx={{ mb: 2 }} />
-                <Typography variant="body2" color="text.secondary">
+              <Box sx={{ textAlign: 'center', py: 3 }}>
+                <LinearProgress sx={{ mb: 1.5 }} />
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                   Loading sources...
                 </Typography>
               </Box>
             ) : documents.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 6 }}>
-                <CloudUpload sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <CloudUpload sx={{ fontSize: 40, color: 'text.disabled', mb: 1.5 }} />
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.85rem' }}>
                   No sources uploaded
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Upload documents to start asking questions
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                  Upload documents to start
                 </Typography>
               </Box>
             ) : (
-              <Stack spacing={1}>
+              <Stack spacing={0.5}>
                 {documents.map((doc) => (
-                  <Card
+                  <Box
                     key={doc.id}
                     sx={{
                       cursor: 'pointer',
-                      border: '1px solid',
-                      borderColor: selectedDocuments.includes(doc.id) ? 'primary.main' : 'divider',
-                      backgroundColor: selectedDocuments.includes(doc.id) ? 'primary.light' : 'background.paper',
+                      borderRadius: 1,
+                      p: 1.5,
+                      backgroundColor: selectedDocuments.includes(doc.id) 
+                        ? theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.08)'
+                        : 'transparent',
                       '&:hover': {
-                        borderColor: 'primary.main',
-                        backgroundColor: 'primary.light',
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
                       },
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      transition: 'background-color 0.2s',
                     }}
                     onClick={() => handleDocumentSelect(doc.id)}
                   >
-                    <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Checkbox
-                          checked={selectedDocuments.includes(doc.id)}
-                          size="small"
-                          sx={{ p: 0 }}
-                        />
-                        <Description sx={{ color: 'primary.main', fontSize: 18 }} />
-                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: 500,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {doc.filename}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {new Date(doc.created_at).toLocaleDateString()}
-                          </Typography>
-                        </Box>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteDocument(doc.id, doc.filename);
-                          }}
-                          sx={{ color: 'error.main' }}
-                        >
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </CardContent>
-                  </Card>
+                    <Checkbox
+                      checked={selectedDocuments.includes(doc.id)}
+                      size="small"
+                      sx={{ p: 0 }}
+                    />
+                    <Description sx={{ color: 'primary.main', fontSize: 18, flexShrink: 0 }} />
+                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {doc.filename}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {new Date(doc.created_at).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteDocument(doc.id, doc.filename);
+                      }}
+                      sx={{ 
+                        color: 'text.secondary',
+                        '&:hover': { color: 'error.main' },
+                        p: 0.5,
+                      }}
+                    >
+                      <Delete fontSize="small" />
+                    </IconButton>
+                  </Box>
                 ))}
               </Stack>
             )}
@@ -663,63 +722,64 @@ const QueryInterface = () => {
         </Box>
 
         {/* Chat Area */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.50' }}>
-          {/* Chat Header */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+          {/* Fixed Chat Header */}
           <Box
             sx={{
-              p: 2.5,
+              p: 2,
               borderBottom: '1px solid',
               borderColor: 'divider',
               backgroundColor: 'background.paper',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
+              flexShrink: 0,
             }}
           >
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
                 AI Research Assistant
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-                Ask questions about your uploaded documents
               </Typography>
             </Box>
             
             {conversations.length > 0 && (
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Tooltip title="Search history">
-                  <IconButton size="small" onClick={() => setHistorySearchOpen(true)}>
-                    <History fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Advanced filters">
-                  <IconButton size="small" onClick={() => setFiltersOpen(true)}>
-                    <FilterList fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <Button
-                  variant="outlined"
-                  onClick={handleClear}
-                  disabled={loading}
-                  size="small"
-                  startIcon={<Clear />}
-                  color="error"
-                >
-                  Clear
-                </Button>
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <IconButton size="small" onClick={() => setHistorySearchOpen(true)}>
+                  <History fontSize="small" />
+                </IconButton>
+                <IconButton size="small" onClick={() => setFiltersOpen(true)}>
+                  <FilterList fontSize="small" />
+                </IconButton>
+                <IconButton size="small" onClick={handleClear} disabled={loading} color="error">
+                  <Clear fontSize="small" />
+                </IconButton>
               </Box>
             )}
           </Box>
 
-          {/* Conversation Area */}
+          {/* Scrollable Conversation Area */}
           <Box
             sx={{
               flex: 1,
               overflow: 'auto',
-              p: 3,
-              pb: 10,
+              minHeight: 0,
+              backgroundColor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.50',
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: 'transparent',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+                borderRadius: '4px',
+                '&:hover': {
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+                },
+              },
             }}
           >
+            <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
             {conversations.length === 0 ? (
               <Box
                 sx={{
@@ -801,59 +861,107 @@ const QueryInterface = () => {
                 <div ref={conversationEndRef} />
               </Box>
             )}
+            </Box>
           </Box>
 
-          {/* Input Area */}
+          {/* Fixed Input Area */}
           <Box
             sx={{
-              p: 2.5,
+              p: 2,
+              backgroundColor: 'background.paper',
               borderTop: '1px solid',
               borderColor: 'divider',
-              backgroundColor: 'background.paper',
+              flexShrink: 0,
             }}
           >
-            <form onSubmit={handleSubmit}>
-              <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-end' }}>
-                <TextField
-                  ref={textareaRef}
-                  fullWidth
-                  multiline
-                  maxRows={4}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSubmit(e);
-                    }
-                  }}
-                  placeholder="Ask a question about your documents..."
-                  variant="outlined"
-                  disabled={loading}
+            <Box sx={{ maxWidth: 900, mx: 'auto' }}>
+              <form onSubmit={handleSubmit}>
+                <Paper
+                  elevation={0}
                   sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                    transition: 'all 0.2s',
+                    '&:focus-within': {
+                      borderColor: 'primary.main',
+                      boxShadow: `0 0 0 3px ${theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)'}`,
                     },
                   }}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={loading || !query.trim()}
-                  endIcon={loading ? null : <Send />}
-                  sx={{
-                    minWidth: 110,
-                    height: 56,
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                    px: 3,
-                  }}
                 >
-                  {loading ? 'Sending...' : 'Send'}
-                </Button>
-              </Box>
-            </form>
+                  {/* Source Count Badge */}
+                  {selectedDocuments.length > 0 && (
+                    <Box
+                      sx={{
+                        px: 2,
+                        py: 1,
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)',
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      <Description sx={{ fontSize: 16, color: 'primary.main' }} />
+                      <Typography variant="caption" color="primary.main" sx={{ fontWeight: 500 }}>
+                        {selectedDocuments.length} {selectedDocuments.length === 1 ? 'source' : 'sources'} selected
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'flex-end', p: 1.5, gap: 1 }}>
+                    <TextField
+                      ref={textareaRef}
+                      fullWidth
+                      multiline
+                      maxRows={6}
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSubmit(e);
+                        }
+                      }}
+                      placeholder="Ask anything about your documents..."
+                      variant="standard"
+                      disabled={loading}
+                      InputProps={{
+                        disableUnderline: true,
+                      }}
+                      sx={{
+                        '& .MuiInputBase-input': {
+                          fontSize: '0.95rem',
+                          lineHeight: 1.5,
+                        },
+                      }}
+                    />
+                    <IconButton
+                      type="submit"
+                      disabled={loading || !query.trim()}
+                      color="primary"
+                      sx={{
+                        backgroundColor: loading || !query.trim() ? 'action.disabledBackground' : 'primary.main',
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: 'primary.dark',
+                        },
+                        '&.Mui-disabled': {
+                          backgroundColor: 'action.disabledBackground',
+                          color: 'action.disabled',
+                        },
+                        width: 40,
+                        height: 40,
+                      }}
+                    >
+                      <Send fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </Paper>
+              </form>
+            </Box>
           </Box>
         </Box>
         </Box>
@@ -861,6 +969,34 @@ const QueryInterface = () => {
 
       {/* Footer */}
       <Footer />
+
+      {/* No Sources Dialog */}
+      <Dialog
+        open={noSourcesDialog}
+        onClose={handleNoSourcesCancel}
+        aria-labelledby="no-sources-dialog-title"
+      >
+        <DialogTitle id="no-sources-dialog-title">
+          No Sources Selected
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            No sources selected. The AI will search across all uploaded documents. Do you want to continue?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleNoSourcesCancel}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleNoSourcesContinue} 
+            color="primary" 
+            variant="contained"
+          >
+            Continue
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Clear Chat Dialog */}
       <Dialog
