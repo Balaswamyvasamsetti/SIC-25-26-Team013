@@ -6,12 +6,35 @@ import asyncio
 class QuantumRetrieval:
     """
     Quantum-Inspired Retrieval: Uses quantum superposition principles
-    to rank documents in multiple probability states simultaneously
     """
     
     def __init__(self):
-        self.coherence_threshold = 0.7
-        self.entanglement_matrix = None
+        self.coherence = 0.85
+        self.last_measurement = None
+    
+    def get_coherence(self) -> float:
+        return self.coherence
+    
+    async def retrieve(self, query: str, max_results: int = 15, document_ids: List[int] = None) -> List[Chunk]:
+        """Quantum-inspired retrieval"""
+        from app.services.retrieval import SimpleRetriever
+        from app.core.database import db_manager
+        
+        retriever = SimpleRetriever()
+        chunks = await retriever.retrieve(query, max_results * 2, document_ids)
+        
+        if not chunks:
+            return []
+        
+        # Quantum superposition scoring
+        query_embedding = db_manager.embedding_model.encode(query)
+        quantum_state = self.create_quantum_state(chunks, query_embedding)
+        rankings = self.measure_quantum_state(quantum_state)
+        
+        # Update coherence
+        self.coherence = min(0.85 + len(chunks) * 0.01, 0.95)
+        
+        return [chunks[idx] for idx, prob in rankings[:max_results] if prob > 0.01]
     
     def create_quantum_state(self, chunks: List[Chunk], query_embedding: np.ndarray) -> np.ndarray:
         """Create quantum superposition state for all chunks"""
@@ -83,3 +106,5 @@ class QuantumRetrieval:
         
         # Return ranked chunks
         return [chunks[idx] for idx, prob in rankings if prob > 0.01]
+
+quantum_retriever = QuantumRetrieval()

@@ -2,22 +2,21 @@ import asyncio
 import json
 from typing import List, Dict, Any
 from rank_bm25 import BM25Okapi
+import numpy as np
 from app.core.database import db_manager
 from app.models.schemas import Chunk
 
 class SimpleRetriever:
-    """Fast vector search with BM25 hybrid retrieval"""
+    """Hybrid retrieval with vector + BM25 for better accuracy"""
     
     async def retrieve(self, query: str, max_results: int = 10, document_ids: List[int] = None) -> List[Chunk]:
-        # Use document_ids from parameter or stored attribute
         doc_filter = document_ids or getattr(self, 'document_ids', None)
         
+        # Step 1: Vector search - get more candidates
         query_embedding = db_manager.embedding_model.encode(query)
-        # Convert to PostgreSQL vector format
         query_vector = '[' + ','.join(map(str, query_embedding)) + ']'
         
         async with db_manager.pg_pool.acquire() as conn:
-            # Build query with optional document filtering
             base_query = """
                 SELECT c.id, c.content, c.document_id, c.chunk_index, c.metadata,
                        1 - (c.embedding <=> $1::vector) as similarity_score
@@ -31,22 +30,53 @@ class SimpleRetriever:
                 params.append(doc_filter)
             
             base_query += " ORDER BY c.embedding <=> $1::vector LIMIT $" + str(len(params) + 1)
-            params.append(max_results)
+            params.append(max_results * 3)  # Get 3x candidates
             
             results = await conn.fetch(base_query, *params)
             
-            return [
+            chunks = [
                 Chunk(
                     id=row['id'],
                     content=row['content'],
                     document_id=row['document_id'],
                     chunk_index=row['chunk_index'],
                     metadata=json.loads(row['metadata']) if row['metadata'] else {},
-                    embedding=None,  # Don't load full embedding for performance
+                    embedding=None,
                     similarity_score=row['similarity_score']
                 )
                 for row in results
             ]
+        
+        if not chunks:
+            return []
+        
+        # Step 2: BM25 reranking
+        chunks = self._hybrid_rerank(query, chunks, max_results)
+        
+        return chunks
+    
+    def _hybrid_rerank(self, query: str, chunks: List[Chunk], top_k: int) -> List[Chunk]:
+        """Rerank using BM25 + vector scores"""
+        if len(chunks) <= top_k:
+            return chunks
+        
+        # BM25 scoring
+        tokenized_docs = [chunk.content.lower().split() for chunk in chunks]
+        bm25 = BM25Okapi(tokenized_docs)
+        bm25_scores = bm25.get_scores(query.lower().split())
+        
+        # Normalize scores
+        vector_scores = np.array([c.similarity_score for c in chunks])
+        vector_norm = (vector_scores - vector_scores.min()) / (vector_scores.max() - vector_scores.min() + 1e-10)
+        bm25_norm = (bm25_scores - bm25_scores.min()) / (bm25_scores.max() - bm25_scores.min() + 1e-10)
+        
+        # Combine: 60% vector, 40% BM25
+        combined_scores = 0.6 * vector_norm + 0.4 * bm25_norm
+        
+        # Sort by combined score
+        ranked_indices = np.argsort(combined_scores)[::-1][:top_k]
+        
+        return [chunks[i] for i in ranked_indices]
 
 class ComplexRetriever:
     """Multi-hop graph traversal for complex queries"""

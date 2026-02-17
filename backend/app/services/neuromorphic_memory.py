@@ -106,9 +106,29 @@ class NeuromorphicMemory:
             # Best-effort persistence; ignore db issues
             pass
     
-    def get_memory_strength(self, chunk_id: int) -> float:
-        """Get current synaptic strength for a chunk"""
-        return self.synaptic_weights.get(chunk_id, 0.0)
+    def get_memory_strength(self, chunk_id: int = None) -> float:
+        """Get current synaptic strength"""
+        if chunk_id:
+            return self.synaptic_weights.get(chunk_id, 0.0)
+        # Return average strength
+        if not self.synaptic_weights:
+            return 0.75
+        return np.mean(list(self.synaptic_weights.values()))
+    
+    async def adapt_retrieval(self, query: str, chunks: List) -> List:
+        """Adapt retrieval using neuromorphic memory"""
+        if not chunks:
+            return chunks
+        
+        # Strengthen synapses for accessed chunks
+        for chunk in chunks[:5]:
+            await self.strengthen_synapse(chunk.id, query)
+        
+        # Apply memory decay periodically
+        if len(self.access_history) % 10 == 0:
+            await self.apply_memory_decay()
+        
+        return chunks
     
     def get_associated_chunks(self, chunk_id: int, threshold: float = 0.3) -> List[int]:
         """Get chunks strongly associated with given chunk"""

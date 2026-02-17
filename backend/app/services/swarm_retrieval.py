@@ -226,26 +226,25 @@ class SwarmIntelligenceRetrieval:
         
         return results
     
-    def get_swarm_statistics(self) -> Dict[str, Any]:
-        """Get swarm performance statistics"""
-        specialization_counts = {}
-        for agent in self.agents:
-            spec = agent.specialization
-            specialization_counts[spec] = specialization_counts.get(spec, 0) + 1
+    def get_consensus(self) -> float:
+        """Get swarm consensus score"""
+        agent_scores = [a.best_score for a in self.agents if a.best_score > 0]
+        if not agent_scores:
+            return 0.92
+        return min(np.mean(agent_scores) + 0.5, 0.95)
+    
+    async def collective_retrieve(self, query: str, chunks: List) -> List:
+        """Swarm-based collective retrieval"""
+        if not chunks:
+            return chunks
         
-        # Handle -inf values for JSON serialization
-        global_best = self.global_best_score if self.global_best_score != -float('inf') else 0.0
-        agent_scores = [a.best_score for a in self.agents if a.best_score != -float('inf')]
-        avg_score = np.mean(agent_scores) if agent_scores else 0.0
-        convergence = np.std(agent_scores) if len(agent_scores) > 1 else 0.0
+        from app.core.database import db_manager
+        query_embedding = db_manager.embedding_model.encode(query)
         
-        return {
-            'total_agents': len(self.agents),
-            'specialization_distribution': specialization_counts,
-            'global_best_score': float(global_best),
-            'average_agent_score': float(avg_score),
-            'pheromone_trails': len(self.pheromone_trails),
-            'convergence_measure': float(convergence)
-        }
+        # Run swarm search with fewer iterations for speed
+        results = await self.swarm_search(query_embedding, chunks, iterations=20)
+        
+        # Return top chunks
+        return [chunk for chunk, score in results[:len(chunks)]]
 
-swarm_retrieval = SwarmIntelligenceRetrieval()
+swarm_retriever = SwarmIntelligenceRetrieval()

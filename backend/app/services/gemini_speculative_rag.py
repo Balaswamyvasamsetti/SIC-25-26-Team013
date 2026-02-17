@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class GeminiSpeculativeRAG:
-    """Production-grade Gemini Speculative RAG with comprehensive error handling"""
+    """Production-grade Gemini RAG with query expansion and verification"""
     
     def __init__(self):
         api_key = os.getenv("GEMINI_API_KEY")
@@ -21,11 +21,10 @@ class GeminiSpeculativeRAG:
         if api_key and api_key != "your_gemini_api_key_here":
             try:
                 genai.configure(api_key=api_key)
-                # Test the API with a simple call
                 test_model = genai.GenerativeModel(settings.drafter_model)
                 test_model.generate_content("test")
                 self.available = True
-                print(f"✓ Gemini API initialized and tested successfully with {settings.drafter_model}")
+                print(f"✓ Gemini API initialized with {settings.drafter_model}")
             except Exception as e:
                 print(f"✗ Gemini API initialization failed: {e}")
                 self.available = False
@@ -33,68 +32,116 @@ class GeminiSpeculativeRAG:
             print("✗ No valid Gemini API key found")
             self.available = False
     
+    async def expand_query(self, query: str) -> List[str]:
+        """Generate query variations for better retrieval"""
+        if not self.available:
+            return [query]
+        
+        try:
+            model = genai.GenerativeModel(settings.drafter_model)
+            prompt = f"""Generate 2 alternative phrasings of this query (one per line, no numbering):
+{query}
+
+Alternatives:"""
+            
+            response = model.generate_content(
+                prompt,
+                generation_config=genai.GenerationConfig(temperature=0.3, max_output_tokens=100)
+            )
+            
+            alternatives = [line.strip() for line in response.text.strip().split('\n') if line.strip() and len(line.strip()) > 10]
+            return [query] + alternatives[:2]
+        except:
+            return [query]
+    
     async def generate_answer(self, query: str, chunks: List[Chunk]) -> Dict[str, Any]:
-        """Production-grade answer generation with comprehensive fallbacks"""
+        """Production-grade answer generation with query expansion"""
         
         print(f"\n=== GENERATION START ===")
         print(f"Query: {query}")
         print(f"Chunks available: {len(chunks)}")
-        print(f"Gemini available: {self.available}")
         
-        # Validate inputs
         if not chunks:
-            print("✗ No chunks provided, returning no-docs response")
             return self._no_docs_response(query)
         
-        # Try Gemini if available
+        # Step 1: Query expansion for better context selection
+        expanded_queries = await self.expand_query(query)
+        print(f"Expanded queries: {len(expanded_queries)}")
+        
+        # Step 2: Select best chunks using expanded queries
+        best_chunks = self._select_best_chunks(query, expanded_queries, chunks)
+        print(f"Selected {len(best_chunks)} best chunks")
+        
+        # Step 3: Generate with Gemini
         if self.available:
             try:
-                print("→ Attempting Gemini generation...")
-                result = await self._generate_with_gemini(query, chunks)
+                result = await self._generate_with_gemini(query, best_chunks)
                 print(f"✓ Gemini generation successful")
                 return result
             except Exception as e:
                 print(f"✗ Gemini generation failed: {e}")
-                print(f"Traceback: {traceback.format_exc()}")
         
-        # Fallback to enhanced extraction
-        print("→ Using enhanced extraction fallback...")
-        return self._enhanced_extraction(query, chunks)
+        return self._enhanced_extraction(query, best_chunks)
+    
+    def _select_best_chunks(self, original_query: str, expanded_queries: List[str], chunks: List[Chunk]) -> List[Chunk]:
+        """Select most relevant chunks using query expansion"""
+        if len(chunks) <= 8:
+            return chunks
+        
+        # Score each chunk against all query variations
+        chunk_scores = {}
+        for chunk in chunks:
+            score = 0
+            content_lower = chunk.content.lower()
+            
+            for query in expanded_queries:
+                query_words = set(query.lower().split())
+                content_words = set(content_lower.split())
+                overlap = len(query_words.intersection(content_words))
+                score += overlap / len(query_words) if query_words else 0
+            
+            # Add vector similarity if available
+            if hasattr(chunk, 'similarity_score') and chunk.similarity_score:
+                score += chunk.similarity_score * 2
+            
+            chunk_scores[chunk.id] = score
+        
+        # Sort by score and return top 8
+        sorted_chunks = sorted(chunks, key=lambda c: chunk_scores.get(c.id, 0), reverse=True)
+        return sorted_chunks[:8]
     
     async def _generate_with_gemini(self, query: str, chunks: List[Chunk]) -> Dict[str, Any]:
-        """Generate comprehensive answer using Gemini"""
+        """Generate answer with strict context adherence"""
         
-        # Prepare context from top chunks
         context_parts = []
-        for i, chunk in enumerate(chunks[:8]):  # Use top 8 chunks for better context
-            context_parts.append(f"[Source {i+1} - Chunk {chunk.id}]\n{chunk.content}")
+        for i, chunk in enumerate(chunks):
+            context_parts.append(f"[Source {i+1}]\n{chunk.content}")
         
         context = "\n\n".join(context_parts)
         
-        prompt = f"""You are an expert AI research assistant analyzing documents to answer questions accurately and comprehensively.
+        prompt = f"""You are a precise AI assistant. Answer ONLY using the provided sources.
 
-Question: {query}
+STRICT RULES:
+1. Use ONLY information from sources below
+2. Cite each statement with [Source X]
+3. If sources lack information, say "I don't have enough information in the provided sources"
+4. Never add external knowledge
+5. Quote relevant parts when possible
 
-Relevant Document Excerpts:
+SOURCES:
 {context}
 
-Instructions:
-1. Provide a detailed, accurate answer based ONLY on the information in the documents above
-2. Include specific details, facts, and examples from the documents
-3. Cite sources using [Source X] notation when referencing information
-4. If the documents don't contain enough information, clearly state what's missing
-5. Structure your answer clearly with proper paragraphs
-6. Be thorough but concise
+QUESTION: {query}
 
-Answer:"""
+ANSWER (with citations):"""
         
         try:
-            model = genai.GenerativeModel(settings.drafter_model)
+            model = genai.GenerativeModel(settings.verifier_model)  # Use verifier for better quality
             response = model.generate_content(
                 prompt,
                 generation_config=genai.GenerationConfig(
-                    temperature=0.3,
-                    top_p=0.95,
+                    temperature=0.05,  # Very low for maximum factuality
+                    top_p=0.9,
                     top_k=40,
                     max_output_tokens=2048,
                 )
@@ -106,11 +153,14 @@ Answer:"""
             if not answer_text or len(answer_text.strip()) < 20:
                 raise ValueError("Generated answer too short or empty")
             
+            # Calculate confidence
+            confidence = self._calculate_confidence(answer_text, chunks)
+            
             return {
                 "answer": answer_text,
-                "confidence": 0.9,
-                "sources": self._extract_sources(chunks[:8]),
-                "model": settings.drafter_model
+                "confidence": confidence,
+                "sources": self._extract_sources(chunks),
+                "model": settings.verifier_model
             }
             
         except Exception as e:
@@ -146,10 +196,36 @@ Answer:"""
             "model": "enhanced-extraction"
         }
     
+    def _calculate_confidence(self, answer: str, chunks: List[Chunk]) -> float:
+        """Calculate confidence based on answer-context overlap and citations"""
+        if not answer or len(answer) < 20:
+            return 0.3
+        
+        # Check groundedness
+        answer_words = set(answer.lower().split())
+        context_words = set(' '.join([c.content for c in chunks]).lower().split())
+        overlap = len(answer_words.intersection(context_words))
+        groundedness = min(overlap / len(answer_words) if answer_words else 0, 1.0)
+        
+        # Check for citations
+        citation_count = answer.count('[Source')
+        has_citations = citation_count > 0
+        
+        # Check answer length (not too short, not too long)
+        length_score = min(len(answer) / 200, 1.0) if len(answer) < 1000 else 0.9
+        
+        # Calculate final confidence
+        base_confidence = (groundedness * 0.5) + (length_score * 0.3)
+        if has_citations:
+            base_confidence += 0.2
+        
+        return min(round(base_confidence, 2), 0.98)
+    
     def _extract_sources(self, chunks: List[Chunk]) -> List[Dict[str, Any]]:
         return [{
             "chunk_id": c.id, 
             "document_id": c.document_id,
+            "content": c.content,  # Full content for metrics
             "content_preview": c.content[:200]
         } for c in chunks]
 
