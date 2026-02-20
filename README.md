@@ -355,7 +355,7 @@ best_draft = verify_70B(drafts, query)
 
 ### Resume Analysis
 
-- **AI-Powered Evaluation** - Gemini 1.5 Flash integration
+- **AI-Powered Evaluation** - Gemini 3.0 Flash Preview integration
 - **Skill Gap Analysis** - Identifies missing qualifications
 - **ATS Compatibility** - Applicant Tracking System scoring
 - **Experience Assessment** - Career progression evaluation
@@ -651,7 +651,7 @@ POST   /metamorphic/test    # Self-validation
 - Neo4j 4.4+ - Knowledge graphs
 
 **AI & ML**:
-- Google Gemini 1.5 Flash - Primary LLM
+- Google Gemini 3.0 Flash Preview - Primary LLM
 - Sentence Transformers - Embeddings
 - Custom Neural Networks - Specialized processing
 
