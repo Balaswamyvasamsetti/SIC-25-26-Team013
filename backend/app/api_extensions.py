@@ -7,15 +7,19 @@ router = APIRouter()
 @router.get("/quantum/coherence")
 async def get_quantum_coherence():
     """Get quantum coherence metrics"""
-    from app.services.quantum_retrieval import QuantumRetrieval
-    quantum = QuantumRetrieval()
-    return {"coherence_threshold": quantum.coherence_threshold}
+    from app.services.quantum_retrieval import quantum_retriever
+    return {"coherence_threshold": quantum_retriever.get_coherence()}
 
 @router.get("/swarm/statistics")
 async def get_swarm_statistics():
     """Get swarm intelligence statistics"""
-    from app.services.swarm_retrieval import swarm_retrieval
-    return swarm_retrieval.get_swarm_statistics()
+    from app.services.swarm_retrieval import swarm_retriever
+    return {
+        "total_agents": swarm_retriever.n_agents,
+        "consensus_score": swarm_retriever.get_consensus(),
+        "global_best_score": swarm_retriever.global_best_score,
+        "status": "active"
+    }
 
 @router.get("/holographic/efficiency")
 async def get_holographic_efficiency():
@@ -29,26 +33,18 @@ async def get_holographic_efficiency():
         async with db_manager.pg_pool.acquire() as conn:
             doc_count = await conn.fetchval("SELECT COUNT(*) FROM documents") or 0
     
-    efficiency = holographic_storage.get_storage_efficiency()
+    # Calculate metrics
+    compression_ratio = holographic_storage.get_compression_ratio()
+    matrix_size_mb = (holographic_storage.dimensions ** 2 * 16) / (1024 * 1024)  # complex128 = 16 bytes
+    hologram_density = len(holographic_storage.reference_waves) / holographic_storage.dimensions if holographic_storage.dimensions > 0 else 0
     
-    # Override with actual document count
-    efficiency["documents_stored"] = doc_count
-    
-    # Calculate compression ratio if we have documents
-    if doc_count > 0 and efficiency["matrix_size_mb"] > 0:
-        efficiency["compression_ratio"] = round(doc_count / efficiency["matrix_size_mb"], 2)
-    else:
-        efficiency["compression_ratio"] = 0
-    
-    # Format hologram density as percentage
-    if efficiency["hologram_density"]:
-        efficiency["hologram_density"] = f"{efficiency['hologram_density']:.2%}"
-    else:
-        efficiency["hologram_density"] = "0%"
-    
-    efficiency["status"] = "active" if doc_count > 0 else "ready"
-    
-    return efficiency
+    return {
+        "documents_stored": doc_count,
+        "compression_ratio": compression_ratio,
+        "matrix_size_mb": round(matrix_size_mb, 2),
+        "hologram_density": f"{hologram_density:.2%}",
+        "status": "active" if doc_count > 0 else "ready"
+    }
 
 @router.get("/causal/timeline/{query}")
 async def get_causal_timeline(query: str):
