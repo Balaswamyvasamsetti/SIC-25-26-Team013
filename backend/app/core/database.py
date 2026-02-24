@@ -66,6 +66,19 @@ class DatabaseManager:
                     )
                 """)
                 
+                # Create neuromorphic synapses table
+                await conn.execute("""
+                    CREATE TABLE IF NOT EXISTS neuromorphic_synapses (
+                        chunk_id INTEGER PRIMARY KEY REFERENCES chunks(id),
+                        synaptic_weight FLOAT DEFAULT 0.5,
+                        access_count INTEGER DEFAULT 0,
+                        last_access TIMESTAMP DEFAULT NOW(),
+                        decay_factor FLOAT DEFAULT 1.0,
+                        created_at TIMESTAMP DEFAULT NOW(),
+                        updated_at TIMESTAMP DEFAULT NOW()
+                    )
+                """)
+                
                 # Ensure all columns exist (for existing tables)
                 await conn.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS metadata JSONB")
                 await conn.execute("ALTER TABLE chunks ADD COLUMN IF NOT EXISTS metadata JSONB")

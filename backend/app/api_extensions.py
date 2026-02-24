@@ -49,8 +49,8 @@ async def get_holographic_efficiency():
 @router.get("/causal/timeline/{query}")
 async def get_causal_timeline(query: str):
     """Get causal timeline for query"""
-    from app.services.temporal_causality import causality_engine
-    return await causality_engine.generate_causal_timeline(query)
+    from app.services.temporal_causality import temporal_engine
+    return await temporal_engine.generate_causal_timeline(query)
 
 @router.get("/neuromorphic/memory")
 async def get_neuromorphic_memory():

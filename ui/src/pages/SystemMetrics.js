@@ -241,7 +241,7 @@ const SystemMetrics = () => {
               <Grid item xs={6}>
                 <Typography variant="body2" color="text.secondary">Hologram Density</Typography>
                 <Typography variant="h5" sx={{ color: theme.palette.primary.main }}>
-                  {holographicData?.hologram_density ? `${Math.round(holographicData.hologram_density * 100)}%` : 'N/A'}
+                  {holographicData?.hologram_density ?? 'N/A'}
                 </Typography>
               </Grid>
             </Grid>
