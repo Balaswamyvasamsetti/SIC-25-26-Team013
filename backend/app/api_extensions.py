@@ -14,10 +14,21 @@ async def get_quantum_coherence():
 async def get_swarm_statistics():
     """Get swarm intelligence statistics"""
     from app.services.swarm_retrieval import swarm_retriever
+    
+    # Calculate agent distribution
+    explorer_count = sum(1 for agent in swarm_retriever.agents if agent.specialization == 'explorer')
+    exploiter_count = sum(1 for agent in swarm_retriever.agents if agent.specialization == 'exploiter')
+    scout_count = sum(1 for agent in swarm_retriever.agents if agent.specialization == 'scout')
+    
     return {
         "total_agents": swarm_retriever.n_agents,
         "consensus_score": swarm_retriever.get_consensus(),
         "global_best_score": swarm_retriever.global_best_score,
+        "specialization_distribution": {
+            "explorer": explorer_count,
+            "exploiter": exploiter_count,
+            "scout": scout_count
+        },
         "status": "active"
     }
 

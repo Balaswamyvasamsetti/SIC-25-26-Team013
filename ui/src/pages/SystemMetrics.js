@@ -259,43 +259,145 @@ const SystemMetrics = () => {
             }}
           >
             <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
-              System Status
+              System Status - 6 Revolutionary Technologies
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} md={2}>
                 <Box textAlign="center">
-                  <AutoGraph fontSize="large" sx={{ color: theme.palette.primary.main }} />
-                  <Typography variant="body2" sx={{ color: theme.palette.primary.main }}>Retrieval Active</Typography>
+                  <AutoGraph 
+                    fontSize="large" 
+                    sx={{ 
+                      color: quantumData ? theme.palette.success.main : theme.palette.grey[500],
+                      animation: quantumData ? 'pulse 2s infinite' : 'none'
+                    }} 
+                  />
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: quantumData ? theme.palette.success.main : theme.palette.grey[500],
+                      fontWeight: 600
+                    }}
+                  >
+                    Quantum Retrieval
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {quantumData ? `${Math.round(quantumData.coherence_threshold * 100)}% Coherence` : 'Initializing...'}
+                  </Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} md={2}>
                 <Box textAlign="center">
-                  <Memory fontSize="large" sx={{ color: theme.palette.primary.main }} />
-                  <Typography variant="body2" sx={{ color: theme.palette.primary.main }}>Memory Learning</Typography>
+                  <Memory 
+                    fontSize="large" 
+                    sx={{ 
+                      color: neuromorphicData?.status === 'active' ? theme.palette.success.main : theme.palette.warning.main,
+                      animation: neuromorphicData?.status === 'active' ? 'pulse 2s infinite' : 'none'
+                    }} 
+                  />
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: neuromorphicData?.status === 'active' ? theme.palette.success.main : theme.palette.warning.main,
+                      fontWeight: 600
+                    }}
+                  >
+                    Neuromorphic Memory
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {neuromorphicData ? `${neuromorphicData.synaptic_weights} Synapses` : 'Ready'}
+                  </Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} md={2}>
                 <Box textAlign="center">
-                  <Storage fontSize="large" sx={{ color: theme.palette.primary.main }} />
-                  <Typography variant="body2" sx={{ color: theme.palette.primary.main }}>Storage Ready</Typography>
+                  <Storage 
+                    fontSize="large" 
+                    sx={{ 
+                      color: holographicData?.status === 'active' ? theme.palette.success.main : theme.palette.info.main,
+                      animation: holographicData?.status === 'active' ? 'pulse 2s infinite' : 'none'
+                    }} 
+                  />
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: holographicData?.status === 'active' ? theme.palette.success.main : theme.palette.info.main,
+                      fontWeight: 600
+                    }}
+                  >
+                    Holographic Storage
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {holographicData ? `${holographicData.compression_ratio}:1 Ratio` : 'Ready'}
+                  </Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} md={2}>
                 <Box textAlign="center">
-                  <GroupWork fontSize="large" sx={{ color: theme.palette.primary.main }} />
-                  <Typography variant="body2" sx={{ color: theme.palette.primary.main }}>Agents Online</Typography>
+                  <GroupWork 
+                    fontSize="large" 
+                    sx={{ 
+                      color: swarmData ? theme.palette.success.main : theme.palette.grey[500],
+                      animation: swarmData ? 'pulse 2s infinite' : 'none'
+                    }} 
+                  />
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: swarmData ? theme.palette.success.main : theme.palette.grey[500],
+                      fontWeight: 600
+                    }}
+                  >
+                    Swarm Intelligence
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {swarmData ? `${swarmData.total_agents} Agents Active` : 'Initializing...'}
+                  </Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} md={2}>
                 <Box textAlign="center">
-                  <AutoGraph fontSize="large" sx={{ color: theme.palette.primary.main }} />
-                  <Typography variant="body2" sx={{ color: theme.palette.primary.main }}>Timeline Signals</Typography>
+                  <AutoGraph 
+                    fontSize="large" 
+                    sx={{ 
+                      color: theme.palette.success.main,
+                      animation: 'pulse 2s infinite'
+                    }} 
+                  />
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: theme.palette.success.main,
+                      fontWeight: 600
+                    }}
+                  >
+                    Temporal Causality
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Timeline Active
+                  </Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} md={2}>
                 <Box textAlign="center">
-                  <Verified fontSize="large" sx={{ color: theme.palette.primary.main }} />
-                  <Typography variant="body2" sx={{ color: theme.palette.primary.main }}>Verification Ready</Typography>
+                  <Verified 
+                    fontSize="large" 
+                    sx={{ 
+                      color: theme.palette.success.main,
+                      animation: 'pulse 2s infinite'
+                    }} 
+                  />
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: theme.palette.success.main,
+                      fontWeight: 600
+                    }}
+                  >
+                    Speculative RAG
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Verification Ready
+                  </Typography>
                 </Box>
               </Grid>
             </Grid>

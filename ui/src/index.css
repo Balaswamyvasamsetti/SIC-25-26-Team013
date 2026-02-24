@@ -200,6 +200,22 @@ code {
   animation: bounce 2s ease-in-out infinite;
 }
 
+/* Pulse animation for active status */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
 /* Glow effect */
 .glow {
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
