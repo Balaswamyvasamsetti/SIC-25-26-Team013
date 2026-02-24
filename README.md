@@ -1,12 +1,22 @@
----
-title: AI Research Agent
-emoji: 
-colorFrom: blue
-colorTo: green
-sdk: static
-app_port: 7860
-pinned: false
----
+# SIC-25-26-Team013
+AI Research Agent (RAG): LLM-powered tool for querying private document PDF sets
+
+Project ID : SIC/AI/013
+
+Project Overview :Advanced RAG system implementing **6 revolutionary technologies** for intelligent PDF document analysis and resume evaluation. This is the world's first implementation combining quantum-inspired retrieval, neuromorphic memory, holographic storage, swarm intelligence, temporal causality, and speculative generation.
+
+Project Objective :AI Research Agent is designed specifically for **querying private document PDF sets** with unprecedented intelligence and accuracy. Whether you're a researcher, business professional, legal expert, or HR specialist, this tool transforms how you interact with document collections.
+
+Team Members Details :
+
+| S.No. | SIC ID       | Name of Student/Member         | Email ID for Github                                                   | Role in Project     |
+| ----- | ------------ | ------------------------------ | --------------------------------------------------------------------- | ------------------- |
+| 1     | SIC202500046 | Mr. Vasamsetti Naga Bala Swamy | [balaswamyvasamsetti@gmail.com](mailto:balaswamyvasamsetti@gmail.com) | Team Leader         |
+| 2     | SIC202500060 | Mr. Devesh Panwar              | [devesh10v@gmail.com](mailto:devesh10v@gmail.com)                     | Presentation & Demo |
+| 3     | SIC202500081 | Mr. Dhadi Eswar                | [907dhadieswar@gmail.com](mailto:907dhadieswar@gmail.com)             | Data Lead           |
+| 4     | SIC202500155 | Ms. Sakshi                     | [sakshi01526@gmail.com](mailto:sakshi01526@gmail.com)                 | Research & Testing  |
+| 5     | SIC202500126 | Mr. Kovvuri P C Durga Reddy    | [durgareddy5548P@gmail.com](mailto:durgareddy5548P@gmail.com)         | Model Builder       |
+
 
 #  AI Research Agent (RAG)
 
@@ -345,7 +355,7 @@ best_draft = verify_70B(drafts, query)
 
 ### Resume Analysis
 
-- **AI-Powered Evaluation** - Gemini 1.5 Flash integration
+- **AI-Powered Evaluation** - Gemini 3.0 Flash Preview integration
 - **Skill Gap Analysis** - Identifies missing qualifications
 - **ATS Compatibility** - Applicant Tracking System scoring
 - **Experience Assessment** - Career progression evaluation
@@ -641,7 +651,7 @@ POST   /metamorphic/test    # Self-validation
 - Neo4j 4.4+ - Knowledge graphs
 
 **AI & ML**:
-- Google Gemini 1.5 Flash - Primary LLM
+- Google Gemini 3.0 Flash Preview - Primary LLM
 - Sentence Transformers - Embeddings
 - Custom Neural Networks - Specialized processing
 
