@@ -4,7 +4,7 @@
 ================================================================================
 
 Project Name: AI Research Agent - Revolutionary RAG System
-Team: SIC Capstone Project - Team 013
+Project Date: January 2025
 
 
 ================================================================================
@@ -92,52 +92,32 @@ CORE CAPABILITIES:
                     2. TEAM MEMBERS & ROLES
 ================================================================================
 
-TEAM 013 - SIC CAPSTONE PROJECT
+JANUARY 2025
 
-1. BALA SWAMY - Team Leader
-   Role: Project coordination, system architecture, integration
-   Responsibilities:
-   - Overall project management
-   - System design and architecture
-   - Technology integration
-   - Stakeholder communication
+1. VINAY - Team Leader
+   - Project coordination and management
+   - System architecture
    - Quality assurance
 
-2. ESWAR - Data Lead
-   Role: Data engineering, database management, data pipeline
-   Responsibilities:
-   - Database design (PostgreSQL, Neo4j)
-   - Data ingestion pipeline
-   - Vector embeddings management
-   - Data quality and validation
-   - Storage optimization
+2. BALA SWAMY - Backend Developer
+   - FastAPI backend development
+   - Database design
+   - API implementation
 
-3. DURGA REDDY - Model Builder
-   Role: AI/ML model development, algorithm implementation
-   Responsibilities:
-   - Revolutionary technology implementation
-   - Model training and optimization
-   - Algorithm development
-   - Performance tuning
-   - AI model integration
+3. ESWAR - Data Engineer
+   - Data pipeline development
+   - Database management
+   - Data optimization
 
-4. DEVESH - Presentation & Demo
-   Role: Documentation, demonstrations, user training
-   Responsibilities:
-   - Project documentation
-   - Demo preparation
-   - User guides and tutorials
-   - Presentation materials
-   - Stakeholder demos
+4. CHANDU - Frontend Developer
+   - React application development
+   - UI/UX design
+   - Component development
 
-5. SAKSHI - Research & Testing
-   Role: Research, testing, quality assurance
-   Responsibilities:
-   - Technology research
+5. SABHAREESH - Testing & QA
    - System testing
-   - Bug identification and tracking
-   - Performance benchmarking
-   - User acceptance testing
+   - Quality assurance
+   - Documentation
 
 ================================================================================
                     3. SYSTEM ARCHITECTURE
@@ -978,14 +958,9 @@ IMPACT:
 
 TEAM ACCOMPLISHMENT:
 --------------------
-Team 013 has successfully delivered a capstone project that pushes the
-boundaries of what's possible in document analysis and AI-powered retrieval.
-This system demonstrates advanced understanding of:
-- Modern AI/ML techniques
-- Distributed systems architecture
-- Full-stack development
-- User experience design
-- Performance optimization
+Successfully delivered a project that pushes the boundaries of document 
+analysis and AI-powered retrieval, demonstrating advanced understanding of 
+modern AI/ML techniques, distributed systems, and full-stack development.
 
 FUTURE VISION:
 --------------
@@ -1009,16 +984,8 @@ actionable, and decisions more informed.
                     PROJECT DOCUMENTATION END
 ================================================================================
 
-Developed by: Team 013 - SIC Capstone Project
-Team Leader: Bala Swamy
-Data Lead: Eswar
-Model Builder: Durga Reddy
-Presentation & Demo: Devesh
-Research & Testing: Sakshi
+Developed: January 2025
 
-Thank you for reviewing our comprehensive project documentation.
-
-For questions, support, or collaboration opportunities, please contact
-the development team through the project repository.
+For questions or support, please contact the development team.
 
 ================================================================================

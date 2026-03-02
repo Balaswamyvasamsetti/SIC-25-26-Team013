@@ -1,21 +1,21 @@
-# SIC-25-26-Team013
-AI Research Agent (RAG): LLM-powered tool for querying private document PDF sets
+# IRRIGO Smart Irrigation System
+AI-Driven Precision Agriculture Platform
 
-Project ID : SIC/AI/013
+Project ID: IRRIGO/2025
 
-Project Overview :Advanced RAG system implementing **6 revolutionary technologies** for intelligent PDF document analysis and resume evaluation. This is the world's first implementation combining quantum-inspired retrieval, neuromorphic memory, holographic storage, swarm intelligence, temporal causality, and speculative generation.
+**Project Overview:** Advanced RAG system for intelligent agricultural advisory and irrigation management. Developed in January 2025.
 
-Project Objective :AI Research Agent is designed specifically for **querying private document PDF sets** with unprecedented intelligence and accuracy. Whether you're a researcher, business professional, legal expert, or HR specialist, this tool transforms how you interact with document collections.
+**Team Members:**
 
-Team Members Details :
+| Name           | Role                     |
+| -------------- | ------------------------ |
+| Vinay          | Team Leader              |
+| Bala Swamy     | Backend Developer        |
+| Eswar          | Data Engineer            |
+| Chandu         | Frontend Developer       |
+| Sabhareesh     | Testing & QA             |
 
-| S.No. | SIC ID       | Name of Student/Member         | Email ID for Github                                                   | Role in Project     |
-| ----- | ------------ | ------------------------------ | --------------------------------------------------------------------- | ------------------- |
-| 1     | SIC202500046 | Mr. Vasamsetti Naga Bala Swamy | [balaswamyvasamsetti@gmail.com](mailto:balaswamyvasamsetti@gmail.com) | Team Leader         |
-| 2     | SIC202500060 | Mr. Devesh Panwar              | [devesh10v@gmail.com](mailto:devesh10v@gmail.com)                     | Presentation & Demo |
-| 3     | SIC202500081 | Mr. Dhadi Eswar                | [907dhadieswar@gmail.com](mailto:907dhadieswar@gmail.com)             | Data Lead           |
-| 4     | SIC202500155 | Ms. Sakshi                     | [sakshi01526@gmail.com](mailto:sakshi01526@gmail.com)                 | Research & Testing  |
-| 5     | SIC202500126 | Mr. Kovvuri P C Durga Reddy    | [durgareddy5548P@gmail.com](mailto:durgareddy5548P@gmail.com)         | Model Builder       |
+**Project Date:** January 2025
 
 
 #  AI Research Agent (RAG)
@@ -737,13 +737,13 @@ RUNTIME_MODE=local  # or 'space' for Hugging Face
 
 ##  Team
 
-**SIC Capstone Project - Team 013**
+**January 2025**
 
-- **Bala Swamy** - Team Leader & Architecture
-- **Eswar** - Data Engineering Lead
-- **Durga Reddy** - Model Development
-- **Devesh** - Presentation & Demo
-- **Sakshi** - Research & Testing
+- Vinay - Team Leader
+- Bala Swamy - Backend Developer
+- Eswar - Data Engineer
+- Chandu - Frontend Developer
+- Sabhareesh - Testing & QA
 
 ---
 
@@ -988,4 +988,4 @@ Whether you're a researcher analyzing papers, a business professional reviewing 
 
 ---
 
-*Built with  by Team 013 - SIC Capstone Project*
+*Built in January 2025*
